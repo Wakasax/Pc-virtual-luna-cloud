@@ -1,0 +1,54 @@
+name: Máquina Virtual Windows
+
+# Gatilhos para executar o workflow
+on:
+  push:
+    branches: [ main ] # Executa ao fazer push na branch 'main'
+  pull_request:
+    branches: [ main ] # Executa em pull requests para 'main'
+  workflow_dispatch: # Permite executar manualmente na interface do GitHub
+
+jobs:
+  windows-vm:
+    runs-on: windows-latest # Usa o runner Windows mais recente (atualmente Windows Server 2022)
+    
+    steps:
+      # 1. Faz checkout do código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2. Configura Java (necessário para projetos como plugins Bukkit/Spigot)
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # Usa Eclipse Temurin (distribuição confiável)
+          java-version: '17' # Versão do Java (ajuste conforme necessário)
+
+      # 3. Instala Maven (para compilar projetos Java)
+      - name: Instalar Maven
+        run: |
+          choco install maven -y
+        shell: powershell # Usa PowerShell para comandos no Windows
+
+      # 4. Configura ambiente adicional (ex.: ferramentas, dependências)
+      - name: Configurar ambiente
+        run: |
+          echo "Configurando ambiente Windows..."
+          java -version
+          mvn --version
+          dir # Equivalente ao 'ls' no Linux, lista arquivos
+        shell: powershell
+
+      # 5. Executa um comando personalizado (ex.: compilar um projeto)
+      - name: Compilar projeto
+        run: |
+          echo "Compilando projeto..."
+          mvn clean install
+        shell: powershell
+
+      # 6. (Opcional) Publica artefatos gerados (ex.: JAR do plugin)
+      - name: Publicar artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: target/*.jar # Ajuste o caminho para os arquivos gerados
